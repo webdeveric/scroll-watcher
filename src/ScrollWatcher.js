@@ -1,13 +1,13 @@
 (function( root, name, factory ) {
-  "use strict";
+  'use strict';
 
-  if ( typeof define === "function" && define.amd ) {
+  if ( typeof define === 'function' && define.amd ) {
 
     define( [], function() {
       return factory( root );
     });
 
-  } else if ( typeof module !== "undefined" && module.exports ) {
+  } else if ( typeof module !== 'undefined' && module.exports ) {
 
     module.exports = factory( root );
 
@@ -17,11 +17,11 @@
 
   }
 
-}( typeof window !== "undefined" ? window : this, "ScrollWatcher", function( window ) {
-  "use strict";
+}( typeof window !== 'undefined' ? window : this, 'ScrollWatcher', function( window ) {
+  'use strict';
 
   if ( ! window.document ) {
-    throw new Error( "ScrollWatcher requires a window with a document" );
+    throw new Error( 'ScrollWatcher requires a window with a document' );
   }
 
   function ScrollWatcher( obj )
@@ -36,11 +36,11 @@
     this.doc             = this.obj === window ? document.documentElement : this.obj.ownerDocument.documentElement;
     this.vp              = {};
 
-    if ( !( "addEventListener" in window ) ) {
+    if ( !( 'addEventListener' in window ) ) {
       return;
     }
 
-    [ "top", "right", "bottom", "left" ].forEach( function( prop ) {
+    [ 'top', 'right', 'bottom', 'left' ].forEach( function( prop ) {
 
       Object.defineProperty( this.vp, prop, {
         get: function() {
@@ -54,7 +54,7 @@
     this.listen();
 
     window.addEventListener(
-      window.onpageshow || window.onpageshow === null ? "pageshow" : "load",
+      window.onpageshow || window.onpageshow === null ? 'pageshow' : 'load',
       this.run.bind(this),
       false
     );
@@ -129,9 +129,9 @@
 
   ScrollWatcher.prototype.listen = function()
   {
-    if ( "addEventListener" in this.obj ) {
+    if ( 'addEventListener' in this.obj ) {
 
-      [ "scroll", "resize", "touchmove", "MSPointerMove" ].forEach( function( eventName ) {
+      [ 'scroll', 'resize', 'touchmove', 'MSPointerMove' ].forEach( function( eventName ) {
         this.obj.addEventListener( eventName, this, false );
       }, this );
 
@@ -140,9 +140,9 @@
 
   ScrollWatcher.prototype.stopListening = function()
   {
-    if ( "removeEventListener" in this.obj ) {
+    if ( 'removeEventListener' in this.obj ) {
 
-      [ "scroll", "resize", "touchmove", "MSPointerMove" ].forEach( function( eventName ) {
+      [ 'scroll', 'resize', 'touchmove', 'MSPointerMove' ].forEach( function( eventName ) {
         this.obj.removeEventListener( eventName, this, false );
       }, this );
 
@@ -177,7 +177,7 @@
 
   ScrollWatcher.prototype.handleEvent = function( e )
   {
-    if ( e.type === "resize" ) {
+    if ( e.type === 'resize' ) {
       this.onResize( e );
     } else {
       this.onScroll( e );
