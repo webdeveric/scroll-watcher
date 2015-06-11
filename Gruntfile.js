@@ -31,6 +31,13 @@ module.exports = function(grunt) {
           '.plato/': [ 'src/*.js' ]
         }
       }
+    },
+
+    watch: {
+      js: {
+        files: jsFiles,
+        tasks: [ 'lint' ]
+      }
     }
   });
 
@@ -44,5 +51,5 @@ module.exports = function(grunt) {
 
   grunt.registerTask('report', [ 'plato', 'shell:openreports' ] );
 
-  grunt.registerTask('default', [ 'lint' ] );
+  grunt.registerTask('default', [ 'lint', 'watch' ] );
 };
