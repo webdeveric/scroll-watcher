@@ -24,6 +24,20 @@
     throw new Error( 'ScrollWatcher requires a window with a document' );
   }
 
+  var getId = (function() {
+    var counter = 0;
+    return function( element ) {
+      if ( ! element.id ) {
+        var newId = '';
+        do {
+          newId = 'id' + counter++;
+        } while ( document.getElementById( newId ) !== null );
+        element.id = newId;
+      }
+      return element.id;
+    };
+  }());
+
   function ScrollWatcher( obj )
   {
     this.queue           = [];
@@ -67,7 +81,7 @@
 
   ScrollWatcher.prototype.rect = function( element )
   {
-    var key = window.getId( element );
+    var key = getId( element );
 
     if ( !ScrollWatcher.cache[ key ] ) {
       var rect = element.getBoundingClientRect();
