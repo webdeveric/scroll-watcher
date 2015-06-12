@@ -24,6 +24,7 @@
     throw new Error( 'ScrollWatcher requires a window with a document' );
   }
 
+  // Get the element ID or generate one if it's missing.
   var getId = (function() {
     var counter = 0;
     return function( element ) {
@@ -38,6 +39,35 @@
     };
   }());
 
+  // Polyfill requestAnimationFrame and cancelAnimationFrame
+  (function( w ) {
+    var prefix = [ 'webkit', 'moz', 'ms', 'o' ],
+        i = 0,
+        limit = prefix.length;
+
+    for ( ; i < limit && !w.requestAnimationFrame ; ++i ) {
+      w.requestAnimationFrame = w[ prefix[ i ] + 'RequestAnimationFrame' ];
+      w.cancelAnimationFrame  = w[ prefix[ i ] + 'CancelAnimationFrame' ] || w[ prefix[ i ] + 'CancelRequestAnimationFrame' ];
+    }
+
+    if ( ! w.requestAnimationFrame ) {
+      var lastTime = 0;
+      w.requestAnimationFrame = function( callback ) {
+        var now   = new Date().getTime(),
+            ttc   = Math.max( 0, 16 - now - lastTime ),
+            timer = w.setTimeout( function() { callback( now + ttc ); }, ttc );
+        lastTime = now + ttc;
+        return timer;
+      };
+    }
+
+    if ( ! w.cancelAnimationFrame ) {
+      w.cancelAnimationFrame = function( timer ) {
+        w.clearTimeout( timer );
+      };
+    }
+  }( window ));
+
   function ScrollWatcher( obj )
   {
     this.queue           = [];
@@ -50,7 +80,7 @@
     this.doc             = this.obj === window ? document.documentElement : this.obj.ownerDocument.documentElement;
     this.vp              = {};
 
-    if ( !( 'addEventListener' in window ) ) {
+    if ( ! ( 'addEventListener' in window ) ) {
       return;
     }
 
@@ -83,7 +113,7 @@
   {
     var key = getId( element );
 
-    if ( !ScrollWatcher.cache[ key ] ) {
+    if ( ! ScrollWatcher.cache[ key ] ) {
       var rect = element.getBoundingClientRect();
 
       ScrollWatcher.cache[ key ] = {
@@ -176,7 +206,7 @@
 
   ScrollWatcher.prototype.onScroll = function( e )
   {
-    if ( !this.requestId ) {
+    if ( ! this.requestId ) {
       var self = this,
           doAnimationFrame = function( timestamp ) {
             self.prevTimestamp = self.timestamp;
