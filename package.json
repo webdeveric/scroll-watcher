@@ -4,6 +4,7 @@
   "version": "0.1.0",
   "description": "Perform callbacks onscroll",
   "main": "src/ScrollWatcher.js",
+  "files": [ "src/ScrollWatcher.js" ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
