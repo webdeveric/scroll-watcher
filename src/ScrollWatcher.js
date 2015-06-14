@@ -285,6 +285,11 @@
           return this.timestamp - this.prevTimestamp;
         }
       },
+      atTop: {
+        get: function() {
+          return this.doc.scrollTop === 0;
+        }
+      },
       atBottom: {
         get: function() {
           return this.doc.scrollHeight - this.doc.scrollTop === this.doc.clientHeight;
