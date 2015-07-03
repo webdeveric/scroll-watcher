@@ -35,7 +35,7 @@ export class ScrollWatcher
   {
     if ( ! ScrollWatcher.cache.has( element ) ) {
 
-      let rect = element.getBoundingClientRect();
+      const rect = element.getBoundingClientRect();
 
       ScrollWatcher.cache.set(
         element,
@@ -65,7 +65,7 @@ export class ScrollWatcher
 
   inViewport( element, minPercent )
   {
-    let rect = this.rect( element );
+    const rect = this.rect( element );
 
     if ( rect.bottom <= 0 || rect.top >= this.viewport.height || rect.left >= this.viewport.width || rect.right <= 0 ) {
       return false;
@@ -80,8 +80,8 @@ export class ScrollWatcher
 
   pixelsInViewport( element )
   {
-    let rect = this.rect( element ),
-        pixels = rect.top > 0 ?
+    const rect = this.rect( element ),
+          pixels = rect.top > 0 ?
           Math.min( rect.height, this.viewport.height - rect.top ) :
           Math.max( rect.height + rect.top, 0 );
 
@@ -90,17 +90,17 @@ export class ScrollWatcher
 
   percentInViewport( element )
   {
-    let rect = this.rect( element ),
-        pixels = this.pixelsInViewport( element );
+    const rect = this.rect( element ),
+          pixels = this.pixelsInViewport( element );
 
     return Math.round( pixels / this.viewport.height * 100 ) / 100;
   }
 
   coveringViewport( element )
   {
-    let rect = this.rect( element ),
-        vertical = rect.top <= 0 && rect.bottom >= this.viewport.height,
-        horizontal = rect.left <= 0 && rect.right >= this.viewport.width;
+    const rect = this.rect( element ),
+          vertical = rect.top <= 0 && rect.bottom >= this.viewport.height,
+          horizontal = rect.left <= 0 && rect.right >= this.viewport.width;
 
     return {
       vertical,
@@ -128,15 +128,12 @@ export class ScrollWatcher
 
   handleEvent( e )
   {
-    if ( ! this.requestId ) {
-
+    if ( ! this.requestId && ! this.running ) {
       this.requestId = requestAnimationFrame( ( timestamp ) => {
-
         this.prevTimestamp = this.timestamp;
         this.timestamp = timestamp;
         this.run( e );
         this.requestId = null;
-
       } );
     }
   }
@@ -149,7 +146,7 @@ export class ScrollWatcher
       ScrollWatcher.prevCache = ScrollWatcher.cache;
       ScrollWatcher.cache.clear();
 
-      if ( this.queue && this.queue.size > 0 ) {
+      if ( this.queue && this.queue.size ) {
 
         this.queue.forEach( ( callback ) => {
           this.currentCallback = callback;
