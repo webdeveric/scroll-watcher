@@ -1,150 +1,73 @@
-(function( root, name, factory ) {
-  'use strict';
+import ClearableWeakMap from './ClearableWeakMap.js';
+import { requestAnimationFrame } from './animationFrame.js';
 
-  if ( typeof define === 'function' && define.amd ) {
-
-    define( [], function() {
-      return factory( root );
-    });
-
-  } else if ( typeof module !== 'undefined' && module.exports ) {
-
-    module.exports = factory( root );
-
-  } else {
-
-    root[ name ] = factory( root );
-
-  }
-
-}( typeof window !== 'undefined' ? window : this, 'ScrollWatcher', function( window ) {
-  'use strict';
-
-  if ( ! window.document ) {
-    throw new Error( 'ScrollWatcher requires a window with a document' );
-  }
-
-  // Get the element ID or generate one if it's missing.
-  var getId = (function() {
-    var counter = 0;
-    return function( element ) {
-      if ( ! element.id ) {
-        var newId = '';
-        do {
-          newId = 'id' + counter++;
-        } while ( document.getElementById( newId ) !== null );
-        element.id = newId;
-      }
-      return element.id;
-    };
-  }());
-
-  // Polyfill requestAnimationFrame and cancelAnimationFrame
-  (function( w ) {
-    var prefix = [ 'webkit', 'moz', 'ms', 'o' ],
-        i = 0,
-        limit = prefix.length;
-
-    for ( ; i < limit && !w.requestAnimationFrame ; ++i ) {
-      w.requestAnimationFrame = w[ prefix[ i ] + 'RequestAnimationFrame' ];
-      w.cancelAnimationFrame  = w[ prefix[ i ] + 'CancelAnimationFrame' ] || w[ prefix[ i ] + 'CancelRequestAnimationFrame' ];
-    }
-
-    if ( ! w.requestAnimationFrame ) {
-      var lastTime = 0;
-      w.requestAnimationFrame = function( callback ) {
-        var now   = new Date().getTime(),
-            ttc   = Math.max( 0, 16 - now - lastTime ),
-            timer = w.setTimeout( function() { callback( now + ttc ); }, ttc );
-        lastTime = now + ttc;
-        return timer;
-      };
-    }
-
-    if ( ! w.cancelAnimationFrame ) {
-      w.cancelAnimationFrame = function( timer ) {
-        w.clearTimeout( timer );
-      };
-    }
-  }( window ));
-
-  function ScrollWatcher( obj )
+export class ScrollWatcher
+{
+  constructor( element = window )
   {
-    this.queue           = [];
+    this.element         = element;
+    this.queue           = new Set();
     this.running         = false;
     this.requestId       = null;
     this.currentCallback = null;
     this.timestamp       = 0;
     this.prevTimestamp   = 0;
-    this.obj             = obj || window;
-    this.doc             = this.obj === window ? document.documentElement : this.obj.ownerDocument.documentElement;
-    this.vp              = {};
 
-    if ( ! ( 'addEventListener' in window ) ) {
-      return;
+    this.eventNames = [
+      'pageshow',
+      'load',
+      'scroll',
+      'resize',
+      'touchmove',
+      'MSPointerMove'
+    ];
+
+    if ( this.element.ownerDocument ) {
+      this.doc = this.element.ownerDocument.documentElement;
+    } else {
+      this.doc = window.document.documentElement;
     }
 
-    [ 'top', 'right', 'bottom', 'left' ].forEach( function( prop ) {
-
-      Object.defineProperty( this.vp, prop, {
-        get: function() {
-          return this.rect( this.doc )[ prop ];
-        }.bind(this)
-      });
-
-    }, this );
-
-    this.saveViewportDimensions();
     this.listen();
-
-    window.addEventListener(
-      window.onpageshow || window.onpageshow === null ? 'pageshow' : 'load',
-      this.run.bind(this),
-      false
-    );
   }
 
-  // Cache the getBoundingClientRect results.
-  // Let all instances share the same cache.
-  ScrollWatcher.cache = {};
-  ScrollWatcher.prevCache = {};
-
-  ScrollWatcher.prototype.rect = function( element )
+  rect( element )
   {
-    var key = getId( element );
+    if ( ! ScrollWatcher.cache.has( element ) ) {
 
-    if ( ! ScrollWatcher.cache[ key ] ) {
-      var rect = element.getBoundingClientRect();
+      let rect = element.getBoundingClientRect();
 
-      ScrollWatcher.cache[ key ] = {
-        top:          rect.top,
-        right:        rect.right,
-        bottom:       rect.bottom,
-        left:         rect.left,
-        width:        rect.width,
-        height:       rect.height,
-        offsetTop:    element.offsetTop,
-        offsetLeft:   element.offsetLeft,
-        offsetWidth:  element.offsetWidth,
-        offsetHeight: element.offsetHeight
-      };
+      ScrollWatcher.cache.set(
+        element,
+        {
+          top:          rect.top,
+          right:        rect.right,
+          bottom:       rect.bottom,
+          left:         rect.left,
+          width:        rect.width,
+          height:       rect.height,
+          offsetTop:    element.offsetTop,
+          offsetLeft:   element.offsetLeft,
+          offsetWidth:  element.offsetWidth,
+          offsetHeight: element.offsetHeight
+        }
+      );
 
     }
 
-    return ScrollWatcher.cache[ key ];
-  };
+    return ScrollWatcher.cache.get( element );
+  }
 
-  ScrollWatcher.prototype.prevRect = function( element )
+  prevRect( element )
   {
-    var key = window.getId( element );
-    return ScrollWatcher.prevCache[ key ] ? ScrollWatcher.prevCache[ key ] : null;
-  };
+    return ScrollWatcher.prevCache.get( element );
+  }
 
-  ScrollWatcher.prototype.inViewport = function( element, minPercent )
+  inViewport( element, minPercent )
   {
-    var rect = this.rect( element );
+    let rect = this.rect( element );
 
-    if ( rect.bottom <= 0 || rect.top >= this.vp.height || rect.left >= this.vp.width || rect.right <= 0 ) {
+    if ( rect.bottom <= 0 || rect.top >= this.viewport.height || rect.left >= this.viewport.width || rect.right <= 0 ) {
       return false;
     }
 
@@ -153,174 +76,173 @@
     }
 
     return true;
-  };
+  }
 
-  ScrollWatcher.prototype.pixelsInViewport = function( element )
+  pixelsInViewport( element )
   {
-    var rect = this.rect( element ),
-        pixels = rect.top > 0 ? Math.min( rect.height, this.vp.height - rect.top ) : Math.max( rect.height + rect.top, 0 );
+    let rect = this.rect( element ),
+        pixels = rect.top > 0 ?
+          Math.min( rect.height, this.viewport.height - rect.top ) :
+          Math.max( rect.height + rect.top, 0 );
 
     return pixels;
-  };
+  }
 
-  ScrollWatcher.prototype.percentInViewport = function( element )
+  percentInViewport( element )
   {
-    var rect = this.rect( element ),
+    let rect = this.rect( element ),
         pixels = this.pixelsInViewport( element );
 
-    return Math.round( (pixels / rect.height) * 100 ) / 100;
-  };
+    return Math.round( pixels / this.viewport.height * 100 ) / 100;
+  }
 
-  ScrollWatcher.prototype.listen = function()
+  coveringViewport( element )
   {
-    if ( 'addEventListener' in this.obj ) {
+    let rect = this.rect( element ),
+        vertical = rect.top <= 0 && rect.bottom >= this.viewport.height,
+        horizontal = rect.left <= 0 && rect.right >= this.viewport.width;
 
-      [ 'scroll', 'resize', 'touchmove', 'MSPointerMove' ].forEach( function( eventName ) {
-        this.obj.addEventListener( eventName, this, false );
-      }, this );
+    return {
+      vertical,
+      horizontal,
+      both: vertical && horizontal,
+      either: vertical || horizontal
+    };
+  }
 
-    }
-  };
-
-  ScrollWatcher.prototype.stopListening = function()
+  listen( listening = true )
   {
-    if ( 'removeEventListener' in this.obj ) {
+    this.eventNames.forEach( ( eventName ) => {
+      if ( listening ) {
+        this.element.addEventListener( eventName, this, false );
+      } else {
+        this.element.removeEventListener( eventName, this, false );
+      }
+    } );
+  }
 
-      [ 'scroll', 'resize', 'touchmove', 'MSPointerMove' ].forEach( function( eventName ) {
-        this.obj.removeEventListener( eventName, this, false );
-      }, this );
-
-    }
-  };
-
-  ScrollWatcher.prototype.saveViewportDimensions = function()
+  stopListening()
   {
-    this.vp.width = window.innerWidth || this.doc.clientWidth;
-    this.vp.height = window.innerHeight || this.doc.clientHeight;
-  };
+    this.listen( false );
+  }
 
-  ScrollWatcher.prototype.onResize = function()
-  {
-    this.saveViewportDimensions();
-  };
-
-  ScrollWatcher.prototype.onScroll = function( e )
+  handleEvent( e )
   {
     if ( ! this.requestId ) {
-      var self = this,
-          doAnimationFrame = function( timestamp ) {
-            self.prevTimestamp = self.timestamp;
-            self.timestamp = timestamp;
-            self.run( e );
-            self.requestId = null;
-          };
 
-      this.requestId = window.requestAnimationFrame( doAnimationFrame );
+      this.requestId = requestAnimationFrame( ( timestamp ) => {
+
+        this.prevTimestamp = this.timestamp;
+        this.timestamp = timestamp;
+        this.run( e );
+        this.requestId = null;
+
+      } );
     }
-  };
+  }
 
-  ScrollWatcher.prototype.handleEvent = function( e )
+  run( e )
   {
-    if ( e.type === 'resize' ) {
-      this.onResize( e );
-    } else {
-      this.onScroll( e );
-    }
-  };
+    if ( ! this.running ) {
+      this.running = true;
 
-  ScrollWatcher.prototype.run = function( e )
-  {
-    this.running = true;
+      ScrollWatcher.prevCache = ScrollWatcher.cache;
+      ScrollWatcher.cache.clear();
 
-    ScrollWatcher.prevCache = ScrollWatcher.cache;
-    ScrollWatcher.cache = {};
+      if ( this.queue && this.queue.size > 0 ) {
 
-    this.queue.forEach( function( callback ) {
-      this.currentCallback = callback;
-      callback( this, e );
-      if ( callback.runOnce ) {
-        this.removeCurrentCallback();
+        this.queue.forEach( ( callback ) => {
+          this.currentCallback = callback;
+          callback( this, e );
+          if ( callback.runOnce ) {
+            this.removeCurrentCallback();
+          }
+        } );
+
       }
-    }, this );
 
-    this.running = false;
-  };
+      this.running = false;
+    }
+  }
 
-  ScrollWatcher.prototype.add = function( callback )
+  add( callback )
   {
-    return this.queue[ this.queue.length ] = callback;
-  };
+    this.queue.add( callback );
+    return this;
+  }
 
-  ScrollWatcher.prototype.once = function( callback )
+  once( callback )
   {
     callback.runOnce = true;
     return this.add( callback );
-  };
+  }
 
-  ScrollWatcher.prototype.remove = function( callback )
+  remove( callback )
   {
-    var oldLength = this.queue.length;
+    return this.queue.delete( callback );
+  }
 
-    this.queue = this.queue.filter( function( item ) {
-      return item !== callback;
-    });
-
-    return this.queue.length < oldLength;
-  };
-
-  ScrollWatcher.prototype.removeCurrentCallback = function()
+  removeCurrentCallback()
   {
     if ( this.currentCallback ) {
       this.remove( this.currentCallback );
       this.currentCallback = null;
       return true;
     }
-    return false;
-  };
 
-  if ( Object.defineProperties ) {
-    Object.defineProperties( ScrollWatcher.prototype, {
-      timeDiff: {
-        get: function() {
-          return this.timestamp - this.prevTimestamp;
-        }
-      },
-      atTop: {
-        get: function() {
-          return this.doc.scrollTop === 0;
-        }
-      },
-      atBottom: {
-        get: function() {
-          return this.doc.scrollHeight - this.doc.scrollTop === this.doc.clientHeight;
-        }
-      },
-      scrollLeft: {
-        get: function() {
-          return (this.obj.pageXOffset || this.obj.scrollLeft) | 0 - this.obj.clientLeft | 0;
-        }
-      },
-      scrollTop: {
-        get: function() {
-          return (this.obj.pageYOffset || this.obj.scrollTop) | 0  - this.obj.clientTop | 0;
-        }
-      }
+    return false;
+  }
+
+  die()
+  {
+    this.listen( false );
+
+    Object.getOwnPropertyNames( this ).forEach( ( prop ) => {
+      this[ prop ] = null;
+      delete this[ prop ];
     });
   }
 
-  ScrollWatcher.prototype.die = function()
+  get viewport()
   {
-    var props = Object.getOwnPropertyNames( this ),
-        i = 0,
-        l = props.length;
+    return this.rect( this.doc );
+  }
 
-    this.stopListening();
+  get vp()
+  {
+    return this.rect( this.doc );
+  }
 
-    for ( ; i < l ; ++i ) {
-      this[ props[ i ] ] = null;
-    }
-  };
+  get timeDiff()
+  {
+    return this.timestamp - this.prevTimestamp;
+  }
 
-  return ScrollWatcher;
+  get atTop()
+  {
+    return this.doc.scrollTop === 0;
+  }
 
-}));
+  get atBottom()
+  {
+    return this.doc.scrollHeight - this.doc.scrollTop === this.doc.clientHeight;
+  }
+
+  get scrollLeft()
+  {
+    return (this.element.pageXOffset || this.element.scrollLeft) | 0 - this.element.clientLeft | 0;
+  }
+
+  get scrollTop()
+  {
+    return (this.element.pageYOffset || this.element.scrollTop) | 0  - this.element.clientTop | 0;
+  }
+
+}
+
+// Cache the getBoundingClientRect results.
+// Let all instances share the same cache.
+ScrollWatcher.cache = new ClearableWeakMap();
+ScrollWatcher.prevCache = null;
+
+export default ScrollWatcher;
