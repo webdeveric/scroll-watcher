@@ -1,55 +1,72 @@
 module.exports = function(grunt) {
   'use strict';
 
-  var openCommand = process.platform === 'linux' ? 'xdg-open' : 'open',
-      jsFiles = [ 'Gruntfile.js', 'src/**/*.js' ];
+  var jsFiles = [ 'src/*.js' ];
 
-  grunt.config.init({
-    jshint: {
-      src: jsFiles,
+  var config = {
+
+    eslint: {
       options: {
-        jshintrc: './.jshintrc'
-      }
+        configFile: './.eslintrc'
+      },
+      js: jsFiles
     },
 
     jscs: {
-      src: jsFiles,
       options: {
-        config: './.jscs.json'
-      }
+        config: './.jscsrc'
+      },
+      js: jsFiles
     },
 
-    shell: {
-      openreports: {
-        command: openCommand + ' .plato/index.html'
-      }
-    },
-
-    plato: {
-      scrollwatcher: {
-        files: {
-          '.plato/': [ 'src/*.js' ]
+    babel: {
+      options: {
+        sourceMap: true,
+        modules: 'umd',
+        env: {
+          production: {
+            compact: true
+          }
         }
+      },
+      js: {
+        files: [ {
+          expand: true,
+          cwd: './src/',
+          src: ['*.js'],
+          dest: './dist/'
+        } ]
       }
     },
 
     watch: {
       js: {
         files: jsFiles,
-        tasks: [ 'lint' ]
+        tasks: [ 'js' ]
       }
     }
-  });
+  };
 
-  // https://github.com/sindresorhus/load-grunt-tasks
-  require('load-grunt-tasks')(grunt);
+  grunt.config.init( config );
 
-  // https://www.npmjs.com/package/time-grunt
   require('time-grunt')(grunt);
 
-  grunt.registerTask('lint', [ 'jshint', 'jscs' ] );
+  require('load-grunt-tasks')(grunt);
 
-  grunt.registerTask('report', [ 'plato', 'shell:openreports' ] );
+  grunt.task.registerTask(
+    'lint',
+    'Run linting and coding style tasks',
+    [ 'eslint', 'jscs' ]
+  );
 
-  grunt.registerTask('default', [ 'lint', 'watch' ] );
+  grunt.task.registerTask(
+    'js',
+    'Validate JS then transpile ES6 to ES5',
+    [ 'lint', 'babel' ]
+  );
+
+  grunt.task.registerTask(
+    'default',
+    [ 'watch' ]
+  );
 };

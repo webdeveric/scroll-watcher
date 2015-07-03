@@ -1,12 +1,15 @@
 {
   "name": "scroll-watcher",
   "title": "Scroll Watcher",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Perform callbacks onscroll",
-  "main": "src/ScrollWatcher.js",
-  "files": [ "src/ScrollWatcher.js" ],
+  "main": "dist/ScrollWatcher.js",
+  "files": [
+    "Gruntfile.js",
+    "src/ScrollWatcher.js"
+  ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "postinstall": "./node_modules/.bin/grunt babel"
   },
   "repository": {
     "type": "git",
@@ -27,14 +30,20 @@
     "url": "http://webdeveric.com/"
   },
   "private": true,
-  "devDependencies": {
+  "dependencies": {
     "grunt": "^0.4.5",
-    "grunt-contrib-jshint": "^0.11.2",
-    "grunt-contrib-watch": "^0.6.1",
-    "grunt-jscs": "^1.8.0",
-    "grunt-plato": "^1.2.1",
-    "grunt-shell": "^1.1.2",
+    "grunt-babel": "^5.0.1",
+    "grunt-cli": "^0.1.13",
     "load-grunt-tasks": "~0.6.0",
     "time-grunt": "~1.0.0"
+  },
+  "devDependencies": {
+    "babel-eslint": "^3.1.20",
+    "babel-jscs": "^1.0.3",
+    "eslint": "^0.24.0",
+    "grunt-contrib-watch": "^0.6.1",
+    "grunt-eslint": "^16.0.0",
+    "grunt-jscs": "^1.8.0",
+    "jscs": "^1.13.1"
   }
 }
