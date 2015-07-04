@@ -1,5 +1,5 @@
-import ClearableWeakMap from './ClearableWeakMap.js';
-import { requestAnimationFrame } from './animationFrame.js';
+import ClearableWeakMap from './ClearableWeakMap';
+import { requestAnimationFrame } from './animationFrame';
 
 export class ScrollWatcher
 {

@@ -19,6 +19,20 @@ module.exports = function(grunt) {
       js: jsFiles
     },
 
+    browserify: {
+      js: {
+        options: {
+          transform: [ "babelify" ],
+          browserifyOptions: {
+            standalone: 'ScrollWatcher'
+          }
+        },
+        files: {
+          "lib/ScrollWatcher.bundle.js": "src/ScrollWatcher.js"
+        }
+      }
+    },
+
     babel: {
       options: {
         sourceMap: true,
@@ -34,7 +48,7 @@ module.exports = function(grunt) {
           expand: true,
           cwd: './src/',
           src: ['*.js'],
-          dest: './dist/'
+          dest: './lib/'
         } ]
       }
     },
@@ -62,7 +76,7 @@ module.exports = function(grunt) {
   grunt.task.registerTask(
     'js',
     'Validate JS then transpile ES6 to ES5',
-    [ 'lint', 'babel' ]
+    [ 'lint', 'babel', 'browserify' ]
   );
 
   grunt.task.registerTask(
