@@ -12,7 +12,7 @@
   "scripts": {
     "babel": "babel src --out-dir lib --modules umd",
     "browserify": "browserify src/ScrollWatcher.js -t babelify -o lib/ScrollWatcher.bundle.js -s ScrollWatcher",
-    "prepublish": "npm run-script babel && npm run-script browserify"
+    "postinstall": "npm run-script babel && npm run-script browserify"
   },
   "repository": {
     "type": "git",
