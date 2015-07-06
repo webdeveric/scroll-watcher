@@ -74,9 +74,15 @@ module.exports = function(grunt) {
   );
 
   grunt.task.registerTask(
+    'build',
+    'Transpile ES6 to ES5',
+    [ 'browserify' ]
+  );
+
+  grunt.task.registerTask(
     'js',
-    'Validate JS then transpile ES6 to ES5',
-    [ 'lint', 'babel', 'browserify' ]
+    'Lint then build',
+    [ 'lint', 'build' ]
   );
 
   grunt.task.registerTask(
