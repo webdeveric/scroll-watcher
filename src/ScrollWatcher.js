@@ -14,8 +14,6 @@ export class ScrollWatcher
     this.prevTimestamp   = 0;
 
     this.eventNames = [
-      'pageshow',
-      'load',
       'scroll',
       'resize',
       'touchmove',
@@ -27,6 +25,15 @@ export class ScrollWatcher
     } else {
       this.doc = window.document.documentElement;
     }
+
+    // Handle these events only once, then remove the handler.
+    [ 'pageshow', 'load' ].forEach( ( eventName ) => {
+      const tmpHandler = ( e ) => {
+        this.handleEvent( e );
+        this.element.removeEventListener( eventName, tmpHandler, false );
+      };
+      this.element.addEventListener( eventName, tmpHandler, false );
+    });
 
     this.listen();
   }
@@ -63,7 +70,7 @@ export class ScrollWatcher
     return ScrollWatcher.prevCache.get( element );
   }
 
-  inViewport( element, minPercent )
+  inViewport( element, minPercent, covering = false )
   {
     const rect = this.rect( element );
 
@@ -72,28 +79,65 @@ export class ScrollWatcher
     }
 
     if ( minPercent !== void 0 ) {
+      if ( covering ) {
+        return this.percentCoveringViewport( element ) >= minPercent;
+      }
+
       return this.percentInViewport( element ) >= minPercent;
     }
 
     return true;
   }
 
+  /**
+    @return number
+
+    This returns the number of pixels that are in the viewport for the passed in element.
+  */
   pixelsInViewport( element )
   {
     const rect = this.rect( element ),
-          pixels = rect.top > 0 ?
-          Math.min( rect.height, this.viewport.height - rect.top ) :
-          Math.max( rect.height + rect.top, 0 );
+          vph  = this.viewport.height;
 
-    return pixels;
+    if ( rect.top <= 0 && rect.bottom >= vph ) {
+
+      return vph;
+
+    } else if ( rect.top >= 0 ) {
+
+      return Math.max( 0, Math.min( rect.height, vph - rect.top ) );
+
+    } else {
+
+      return Math.max( 0, rect.height + rect.top );
+
+    }
   }
 
-  percentInViewport( element )
-  {
-    const rect = this.rect( element ),
-          pixels = this.pixelsInViewport( element );
+  /**
+    @return number between 0 and 1
 
-    return Math.round( pixels / this.viewport.height * 100 ) / 100;
+    How much of the element is visible in the viewport.
+  */
+  percentInViewport( element, digits = 2 )
+  {
+    const p = this.pixelsInViewport( element ),
+          h = Math.min( this.viewport.height, this.rect( element ).height );
+
+    return +( p / h ).toFixed( digits );
+  }
+
+  /**
+    @return number between 0 and 1
+
+    How much of the viewport is covered by the element.
+  */
+  percentCoveringViewport( element, digits = 2 )
+  {
+    const p = this.pixelsInViewport( element ),
+          h = this.viewport.height;
+
+    return +( p / h ).toFixed( digits );
   }
 
   coveringViewport( element )
