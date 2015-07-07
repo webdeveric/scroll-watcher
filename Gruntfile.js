@@ -1,6 +1,10 @@
 module.exports = function(grunt) {
   'use strict';
 
+  require('time-grunt')(grunt);
+
+  require('load-grunt-tasks')(grunt);
+
   var jsFiles = [ 'src/*.js' ];
 
   var config = {
@@ -19,18 +23,23 @@ module.exports = function(grunt) {
       js: jsFiles
     },
 
-    browserify: {
-      js: {
-        options: {
-          transform: [ "babelify" ],
-          browserifyOptions: {
-            standalone: 'ScrollWatcher',
-            debug: true
+    babel: {
+      options: {
+        sourceMap: true,
+        modules: 'umd',
+        env: {
+          production: {
+            compact: true
           }
-        },
-        files: {
-          "lib/ScrollWatcher.bundle.js": "src/ScrollWatcher.js"
         }
+      },
+      js: {
+        files: [ {
+          expand: true,
+          cwd: './src/',
+          src: ['*.js'],
+          dest: './lib/'
+        } ]
       }
     },
 
@@ -44,10 +53,6 @@ module.exports = function(grunt) {
 
   grunt.config.init( config );
 
-  require('time-grunt')(grunt);
-
-  require('load-grunt-tasks')(grunt);
-
   grunt.task.registerTask(
     'lint',
     'Run linting and coding style tasks',
@@ -57,7 +62,7 @@ module.exports = function(grunt) {
   grunt.task.registerTask(
     'build',
     'Transpile ES6 to ES5',
-    [ 'browserify' ]
+    [ 'babel' ]
   );
 
   grunt.task.registerTask(

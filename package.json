@@ -3,15 +3,15 @@
   "title": "Scroll Watcher",
   "version": "0.2.0",
   "description": "Perform callbacks onscroll",
-  "main": "lib/ScrollWatcher.bundle.js",
+  "main": "lib/ScrollWatcher.js",
   "files": [
     "Gruntfile.js",
-    "src/",
-    "lib/"
+    "lib/",
+    "src/"
   ],
   "scripts": {
-    "browserify": "browserify src/ScrollWatcher.js --debug -t babelify -s ScrollWatcher | exorcist lib/ScrollWatcher.bundle.map -b . > lib/ScrollWatcher.bundle.js",
-    "postinstall": "mkdir -p lib/; npm run-script browserify"
+    "babel": "babel src --out-dir lib --modules umd",
+    "postinstall": "npm run babel"
   },
   "repository": {
     "type": "git",
@@ -43,16 +43,14 @@
     ]
   ],
   "dependencies": {
-    "babelify": "^6.1.2",
-    "browserify": "^10.2.4",
-    "exorcist": "^0.4.0"
+    "babel": "^5.6.14"
   },
   "devDependencies": {
     "babel-eslint": "^3.1.20",
     "babel-jscs": "^1.0.3",
     "eslint": "^0.24.0",
     "grunt": "^0.4.5",
-    "grunt-browserify": "^3.8.0",
+    "grunt-babel": "^5.0.1",
     "grunt-contrib-watch": "^0.6.1",
     "grunt-eslint": "^16.0.0",
     "grunt-jscs": "^1.8.0",
