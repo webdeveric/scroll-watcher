@@ -5,6 +5,10 @@ export class ScrollWatcher
 {
   constructor( element = window )
   {
+    if ( ! ( 'addEventListener' in element ) ) {
+      return;
+    }
+
     this.element         = element;
     this.queue           = new Set();
     this.running         = false;
@@ -26,14 +30,7 @@ export class ScrollWatcher
       this.doc = window.document.documentElement;
     }
 
-    // Handle these events only once, then remove the handler.
-    [ 'pageshow', 'load' ].forEach( ( eventName ) => {
-      const tmpHandler = ( e ) => {
-        this.handleEvent( e );
-        this.element.removeEventListener( eventName, tmpHandler, false );
-      };
-      this.element.addEventListener( eventName, tmpHandler, false );
-    });
+    this.handleOnce( 'load', 'pageshow' );
 
     this.listen();
   }
@@ -152,6 +149,20 @@ export class ScrollWatcher
       both: vertical && horizontal,
       either: vertical || horizontal
     };
+  }
+
+  handleOnce( ...eventNames )
+  {
+    // Handle these events only once, then remove the handler.
+    eventNames.forEach( ( eventName ) => {
+      const tmpHandler = ( e ) => {
+        this.handleEvent( e );
+        this.element.removeEventListener( eventName, tmpHandler, false );
+        console.log( `Removed listener for ${eventName}` );
+      };
+      this.element.addEventListener( eventName, tmpHandler, false );
+      console.log( `Added listener for ${eventName}` );
+    });
   }
 
   listen( listening = true )
