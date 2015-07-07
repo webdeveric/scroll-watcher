@@ -103,9 +103,9 @@
 
     this.saveViewportDimensions();
 
-    this.handleOnce( 'load', 'pageshow' );
-
     this.listen();
+
+    this.handleLoaded();
   }
 
   // Cache the getBoundingClientRect results.
@@ -175,20 +175,24 @@
     return Math.round( (pixels / rect.height) * 100 ) / 100;
   };
 
-  ScrollWatcher.prototype.handleOnce = function()
+  ScrollWatcher.prototype.handleLoaded = function()
   {
-    var eventNames = Array.prototype.slice.call( arguments ),
+    if ( document.readyState === 'complete' ) {
+      this.handleEvent( new Event('handleloaded') );
+      return;
+    }
+
+    var self = this,
         handled = false;
 
-    eventNames.forEach( function( eventName ) {
-      var self = this,
-          tmpHandler = function( e ) {
-            if ( ! handled ) {
-              handled = true;
-              self.handleEvent( e );
-            }
-            self.obj.removeEventListener( eventName, tmpHandler, false );
-          };
+    [ 'load', 'pageshow' ].forEach( function( eventName ) {
+      var tmpHandler = function( e ) {
+          if ( ! handled ) {
+            handled = true;
+            self.handleEvent( e );
+          }
+          self.obj.removeEventListener( eventName, tmpHandler, false );
+        };
 
       this.obj.addEventListener( eventName, tmpHandler, false );
     }, this );
@@ -271,24 +275,36 @@
 
   ScrollWatcher.prototype.add = function( callback )
   {
-    return this.queue[ this.queue.length ] = callback;
+    if ( this.queue ) {
+      return this.queue[ this.queue.length ] = callback;
+    }
+
+    return false;
   };
 
   ScrollWatcher.prototype.once = function( callback )
   {
-    callback.runOnce = true;
-    return this.add( callback );
+    if ( this.queue ) {
+      callback.runOnce = true;
+      return this.add( callback );
+    }
+
+    return false;
   };
 
   ScrollWatcher.prototype.remove = function( callback )
   {
-    var oldLength = this.queue.length;
+    if ( this.queue ) {
+      var oldLength = this.queue.length;
 
-    this.queue = this.queue.filter( function( item ) {
-      return item !== callback;
-    });
+      this.queue = this.queue.filter( function( item ) {
+        return item !== callback;
+      });
 
-    return this.queue.length < oldLength;
+      return this.queue.length < oldLength;
+    }
+
+    return false;
   };
 
   ScrollWatcher.prototype.removeCurrentCallback = function()
