@@ -1,7 +1,7 @@
 {
   "name": "scroll-watcher",
   "title": "Scroll Watcher",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Perform callbacks onscroll",
   "main": "src/ScrollWatcher.js",
   "files": [ "src/ScrollWatcher.js" ],
