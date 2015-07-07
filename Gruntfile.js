@@ -24,32 +24,13 @@ module.exports = function(grunt) {
         options: {
           transform: [ "babelify" ],
           browserifyOptions: {
-            standalone: 'ScrollWatcher'
+            standalone: 'ScrollWatcher',
+            debug: true
           }
         },
         files: {
           "lib/ScrollWatcher.bundle.js": "src/ScrollWatcher.js"
         }
-      }
-    },
-
-    babel: {
-      options: {
-        sourceMap: true,
-        modules: 'umd',
-        env: {
-          production: {
-            compact: true
-          }
-        }
-      },
-      js: {
-        files: [ {
-          expand: true,
-          cwd: './src/',
-          src: ['*.js'],
-          dest: './lib/'
-        } ]
       }
     },
 
