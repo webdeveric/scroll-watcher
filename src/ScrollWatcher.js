@@ -70,6 +70,10 @@
 
   function ScrollWatcher( obj )
   {
+    if ( ! window.addEventListener ) {
+      return;
+    }
+
     this.queue           = [];
     this.running         = false;
     this.requestId       = null;
@@ -80,9 +84,12 @@
     this.doc             = this.obj === window ? document.documentElement : this.obj.ownerDocument.documentElement;
     this.vp              = {};
 
-    if ( ! ( 'addEventListener' in window ) ) {
-      return;
-    }
+    this.eventNames = [
+      'scroll',
+      'resize',
+      'touchmove',
+      'MSPointerMove'
+    ];
 
     [ 'top', 'right', 'bottom', 'left' ].forEach( function( prop ) {
 
@@ -95,13 +102,10 @@
     }, this );
 
     this.saveViewportDimensions();
-    this.listen();
 
-    window.addEventListener(
-      window.onpageshow || window.onpageshow === null ? 'pageshow' : 'load',
-      this.run.bind(this),
-      false
-    );
+    this.handleOnce( 'load', 'pageshow' );
+
+    this.listen();
   }
 
   // Cache the getBoundingClientRect results.
@@ -171,11 +175,30 @@
     return Math.round( (pixels / rect.height) * 100 ) / 100;
   };
 
+  ScrollWatcher.prototype.handleOnce = function()
+  {
+    var eventNames = Array.prototype.slice.call( arguments ),
+        handled = false;
+
+    eventNames.forEach( function( eventName ) {
+      var self = this,
+          tmpHandler = function( e ) {
+            if ( ! handled ) {
+              handled = true;
+              self.handleEvent( e );
+            }
+            self.obj.removeEventListener( eventName, tmpHandler, false );
+          };
+
+      this.obj.addEventListener( eventName, tmpHandler, false );
+    }, this );
+  };
+
   ScrollWatcher.prototype.listen = function()
   {
     if ( 'addEventListener' in this.obj ) {
 
-      [ 'scroll', 'resize', 'touchmove', 'MSPointerMove' ].forEach( function( eventName ) {
+      this.eventNames.forEach( function( eventName ) {
         this.obj.addEventListener( eventName, this, false );
       }, this );
 
@@ -186,7 +209,7 @@
   {
     if ( 'removeEventListener' in this.obj ) {
 
-      [ 'scroll', 'resize', 'touchmove', 'MSPointerMove' ].forEach( function( eventName ) {
+      this.eventNames.forEach( function( eventName ) {
         this.obj.removeEventListener( eventName, this, false );
       }, this );
 
