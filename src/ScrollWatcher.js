@@ -5,7 +5,7 @@ export class ScrollWatcher
 {
   constructor( element = window )
   {
-    if ( ! ( 'addEventListener' in element ) ) {
+    if ( ! window.addEventListener ) {
       return;
     }
 
@@ -30,9 +30,9 @@ export class ScrollWatcher
       this.doc = window.document.documentElement;
     }
 
-    this.handleOnce( 'load', 'pageshow' );
-
     this.listen();
+
+    this.handleLoaded();
   }
 
   rect( element )
@@ -151,18 +151,29 @@ export class ScrollWatcher
     };
   }
 
-  handleOnce( ...eventNames )
+  /**
+    Call handleEvent one time when the page has loaded or is complete.
+  */
+  handleLoaded()
   {
-    // Handle these events only once, then remove the handler.
-    eventNames.forEach( ( eventName ) => {
+    if ( document.readyState === 'complete' ) {
+      this.handleEvent( new Event('handleloaded') );
+      return;
+    }
+
+    let handled = false;
+
+    [ 'load', 'pageshow' ].forEach( ( eventName ) => {
       const tmpHandler = ( e ) => {
-        this.handleEvent( e );
+        if ( ! handled ) {
+          handled = true;
+          this.handleEvent( e );
+        }
         this.element.removeEventListener( eventName, tmpHandler, false );
-        console.log( `Removed listener for ${eventName}` );
       };
+
       this.element.addEventListener( eventName, tmpHandler, false );
-      console.log( `Added listener for ${eventName}` );
-    });
+    } );
   }
 
   listen( listening = true )
@@ -219,14 +230,21 @@ export class ScrollWatcher
 
   add( callback )
   {
-    this.queue.add( callback );
+    if ( this.queue ) {
+      this.queue.add( callback );
+    }
+
     return this;
   }
 
   once( callback )
   {
-    callback.runOnce = true;
-    return this.add( callback );
+    if ( this.queue ) {
+      callback.runOnce = true;
+      return this.add( callback );
+    }
+
+    return this;
   }
 
   remove( callback )
