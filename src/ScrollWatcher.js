@@ -68,6 +68,19 @@
     }
   }( window ));
 
+  // Thanks MDN. https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent/CustomEvent
+  (function() {
+    function CustomEvent( event, params )
+    {
+      params = params || { bubbles: false, cancelable: false, detail: undefined };
+      var evt = document.createEvent( 'CustomEvent' );
+      evt.initCustomEvent( event, params.bubbles, params.cancelable, params.detail );
+      return evt;
+    }
+    CustomEvent.prototype = window.Event.prototype;
+    window.CustomEvent = CustomEvent;
+  })();
+
   function ScrollWatcher( obj )
   {
     if ( ! window.addEventListener ) {
@@ -178,7 +191,7 @@
   ScrollWatcher.prototype.handleLoaded = function()
   {
     if ( document.readyState === 'complete' ) {
-      this.handleEvent( new Event('handleloaded') );
+      this.handleEvent( new CustomEvent('handleloaded') );
       return;
     }
 
