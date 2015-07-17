@@ -162,7 +162,7 @@ export class ScrollWatcher
   handleLoaded()
   {
     if ( document.readyState === 'complete' ) {
-      this.handleEvent( new Event('handleloaded') );
+      this.handleEvent( new CustomEvent('handleloaded') );
       return;
     }
 
