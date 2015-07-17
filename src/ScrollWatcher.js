@@ -9,8 +9,13 @@ export class ScrollWatcher
       return;
     }
 
+    if ( typeof Set === 'undefined' ) {
+      console.error('Set is undefined. Please provide a polyfill.');
+    } else {
+      this.queue = new Set();
+    }
+
     this.element         = element;
-    this.queue           = new Set();
     this.running         = false;
     this.requestId       = null;
     this.currentCallback = null;
@@ -249,7 +254,11 @@ export class ScrollWatcher
 
   remove( callback )
   {
-    return this.queue.delete( callback );
+    if ( this.queue ) {
+      return this.queue.delete( callback );
+    }
+
+    return false;
   }
 
   removeCurrentCallback()
