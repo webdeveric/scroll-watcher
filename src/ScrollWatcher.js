@@ -1,5 +1,6 @@
 import ClearableWeakMap from './ClearableWeakMap';
-import { requestAnimationFrame } from './animationFrame';
+import { requestAnimationFrame } from './polyfills/animationFrame';
+import './polyfills/CustomEvent';
 
 export class ScrollWatcher
 {
