@@ -10,7 +10,7 @@
     "src/"
   ],
   "scripts": {
-    "babel": "babel src --out-dir lib --modules umd",
+    "babel": "babel src --out-dir lib",
     "postinstall": "npm run babel"
   },
   "repository": {
