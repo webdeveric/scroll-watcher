@@ -10,7 +10,7 @@
     "src/"
   ],
   "scripts": {
-    "babel": "babel src --out-dir lib",
+    "babel": "babel src --out-dir lib --compact",
     "postinstall": "npm run babel"
   },
   "repository": {
