@@ -1,18 +1,17 @@
-(function() {
+try {
 
-  if ( window.CustomEvent !== void 0 ) {
-    return;
-  }
+  new CustomEvent('test');
 
-  function FakeCustomEvent( event, params )
+} catch ( e ) {
+
+  function FakeCustomEvent( event, { bubbles = false, cancelable = false, detail = null } = {} )
   {
-    params = params || { bubbles: false, cancelable: false, detail: undefined };
     var evt = document.createEvent( 'CustomEvent' );
-    evt.initCustomEvent( event, params.bubbles, params.cancelable, params.detail );
+    evt.initCustomEvent( event, bubbles, cancelable, detail );
     return evt;
   }
 
   FakeCustomEvent.prototype = window.Event.prototype;
   window.CustomEvent = FakeCustomEvent;
 
-})();
+}
