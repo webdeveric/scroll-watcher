@@ -5,7 +5,7 @@ module.exports = function(grunt) {
 
   require('load-grunt-tasks')(grunt);
 
-  var jsFiles = [ 'src/*.js' ];
+  var jsFiles = [ 'src/**/*.js' ];
 
   var config = {
 
