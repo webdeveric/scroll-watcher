@@ -77,7 +77,7 @@ export class ScrollWatcher
   {
     const rect = this.rect( element );
 
-    if ( rect.bottom <= 0 || rect.top >= this.viewport.height || rect.left >= this.viewport.width || rect.right <= 0 ) {
+    if ( rect.bottom <= 0 || rect.top >= window.innerHeight || rect.left >= window.innerWidth || rect.right <= 0 ) {
       return false;
     }
 
@@ -100,7 +100,7 @@ export class ScrollWatcher
   pixelsInViewport( element )
   {
     const rect = this.rect( element ),
-          vph  = this.viewport.height;
+          vph  = window.innerHeight;
 
     if ( rect.top <= 0 && rect.bottom >= vph ) {
 
@@ -125,7 +125,7 @@ export class ScrollWatcher
   percentInViewport( element, digits = 2 )
   {
     const p = this.pixelsInViewport( element ),
-          h = Math.min( this.viewport.height, this.rect( element ).height );
+          h = Math.min( window.innerHeight, this.rect( element ).height );
 
     return +( p / h ).toFixed( digits );
   }
@@ -138,7 +138,7 @@ export class ScrollWatcher
   percentCoveringViewport( element, digits = 2 )
   {
     const p = this.pixelsInViewport( element ),
-          h = this.viewport.height;
+          h = window.innerHeight;
 
     return +( p / h ).toFixed( digits );
   }
@@ -146,8 +146,8 @@ export class ScrollWatcher
   coveringViewport( element )
   {
     const rect = this.rect( element ),
-          vertical = rect.top <= 0 && rect.bottom >= this.viewport.height,
-          horizontal = rect.left <= 0 && rect.right >= this.viewport.width;
+          vertical = rect.top <= 0 && rect.bottom >= window.innerHeight,
+          horizontal = rect.left <= 0 && rect.right >= window.innerWidth;
 
     return {
       vertical,
@@ -285,12 +285,15 @@ export class ScrollWatcher
 
   get viewport()
   {
-    return this.rect( this.doc );
+    return {
+      width: window.innerWidth,
+      height: window.innerHeight
+    };
   }
 
   get vp()
   {
-    return this.rect( this.doc );
+    return this.viewport;
   }
 
   get timeDiff()
@@ -310,12 +313,30 @@ export class ScrollWatcher
 
   get scrollLeft()
   {
-    return (this.element.pageXOffset || this.element.scrollLeft) | 0 - this.element.clientLeft | 0;
+    if ( 'pageXOffset' in this.element ) {
+      top = this.element.pageXOffset;
+    } else if ( 'scrollLeft' in this.element ) {
+      top = this.element.scrollLeft;
+    }
+
+    let clientLeft = 'clientLeft' in this.element ? this.element.clientLeft : 0;
+
+    return left - clientLeft;
   }
 
   get scrollTop()
   {
-    return (this.element.pageYOffset || this.element.scrollTop) | 0  - this.element.clientTop | 0;
+    let top = 0;
+
+    if ( 'pageYOffset' in this.element ) {
+      top = this.element.pageYOffset;
+    } else if ( 'scrollTop' in this.element ) {
+      top = this.element.scrollTop;
+    }
+
+    let clientTop = 'clientTop' in this.element ? this.element.clientTop : 0;
+
+    return top - clientTop;
   }
 
 }
