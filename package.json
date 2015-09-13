@@ -1,11 +1,10 @@
 {
   "name": "scroll-watcher",
   "title": "Scroll Watcher",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Perform callbacks onscroll",
   "main": "lib/ScrollWatcher.js",
   "files": [
-    "Gruntfile.js",
     "lib/",
     "src/"
   ],
