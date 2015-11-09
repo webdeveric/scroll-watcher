@@ -30,11 +30,7 @@ export class ScrollWatcher
       'MSPointerMove'
     ];
 
-    if ( this.element.ownerDocument ) {
-      this.doc = this.element.ownerDocument.documentElement;
-    } else {
-      this.doc = window.document.documentElement;
-    }
+    this.doc = window.document.body;
 
     this.listen();
 
@@ -215,9 +211,6 @@ export class ScrollWatcher
     if ( ! this.running ) {
       this.running = true;
 
-      ScrollWatcher.prevCache = ScrollWatcher.cache;
-      ScrollWatcher.cache.clear();
-
       if ( this.queue && this.queue.size ) {
 
         this.queue.forEach( ( callback ) => {
@@ -227,6 +220,9 @@ export class ScrollWatcher
             this.removeCurrentCallback();
           }
         } );
+
+        ScrollWatcher.prevCache = ScrollWatcher.cache;
+        ScrollWatcher.cache.clear();
 
       }
 
@@ -303,12 +299,12 @@ export class ScrollWatcher
 
   get atTop()
   {
-    return this.doc.scrollTop === 0;
+    return this.scrollTop === 0;
   }
 
   get atBottom()
   {
-    return this.doc.scrollHeight - this.doc.scrollTop === this.doc.clientHeight;
+    return this.doc.scrollHeight - this.scrollTop === this.doc.parentNode.clientHeight;
   }
 
   get scrollLeft()
