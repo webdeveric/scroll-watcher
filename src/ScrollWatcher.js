@@ -26,8 +26,7 @@ export class ScrollWatcher
     this.eventNames = [
       'scroll',
       'resize',
-      'touchmove',
-      'MSPointerMove'
+      'touchmove'
     ];
 
     this.doc = window.document.body;
@@ -165,12 +164,13 @@ export class ScrollWatcher
 
     let handled = false;
 
-    [ 'load', 'pageshow' ].forEach( ( eventName ) => {
-      const tmpHandler = ( e ) => {
+    [ 'load', 'pageshow' ].forEach( eventName => {
+      const tmpHandler = e => {
         if ( ! handled ) {
           handled = true;
           this.handleEvent( e );
         }
+
         this.element.removeEventListener( eventName, tmpHandler, false );
       };
 
@@ -180,7 +180,7 @@ export class ScrollWatcher
 
   listen( listening = true )
   {
-    this.eventNames.forEach( ( eventName ) => {
+    this.eventNames.forEach( eventName => {
       if ( listening ) {
         this.element.addEventListener( eventName, this, false );
       } else {
@@ -197,7 +197,7 @@ export class ScrollWatcher
   handleEvent( e )
   {
     if ( ! this.requestId && ! this.running ) {
-      this.requestId = requestAnimationFrame( ( timestamp ) => {
+      this.requestId = requestAnimationFrame( timestamp => {
         this.prevTimestamp = this.timestamp;
         this.timestamp = timestamp;
         this.run( e );
@@ -212,8 +212,7 @@ export class ScrollWatcher
       this.running = true;
 
       if ( this.queue && this.queue.size ) {
-
-        this.queue.forEach( ( callback ) => {
+        this.queue.forEach( callback => {
           this.currentCallback = callback;
           callback( this, e );
           if ( callback.runOnce ) {
@@ -223,7 +222,6 @@ export class ScrollWatcher
 
         ScrollWatcher.prevCache = ScrollWatcher.cache;
         ScrollWatcher.cache.clear();
-
       }
 
       this.running = false;
@@ -243,6 +241,7 @@ export class ScrollWatcher
   {
     if ( this.queue ) {
       callback.runOnce = true;
+
       return this.add( callback );
     }
 
@@ -251,11 +250,7 @@ export class ScrollWatcher
 
   remove( callback )
   {
-    if ( this.queue ) {
-      return this.queue.delete( callback );
-    }
-
-    return false;
+    return this.queue ? this.queue.delete( callback ) : false;
   }
 
   removeCurrentCallback()
@@ -263,6 +258,7 @@ export class ScrollWatcher
     if ( this.currentCallback ) {
       this.remove( this.currentCallback );
       this.currentCallback = null;
+
       return true;
     }
 
@@ -273,7 +269,7 @@ export class ScrollWatcher
   {
     this.listen( false );
 
-    Object.getOwnPropertyNames( this ).forEach( ( prop ) => {
+    Object.getOwnPropertyNames( this ).forEach( prop => {
       this[ prop ] = null;
       delete this[ prop ];
     });
