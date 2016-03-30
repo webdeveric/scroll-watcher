@@ -1,4 +1,3 @@
-import ClearableWeakMap from './ClearableWeakMap';
 import { requestAnimationFrame } from './polyfills/animationFrame';
 import './polyfills/CustomEvent';
 
@@ -10,12 +9,11 @@ export class ScrollWatcher
       return;
     }
 
-    if ( typeof Set === 'undefined' ) {
-      console.error('Set is undefined. Please provide a polyfill.');
-    } else {
-      this.queue = new Set();
+    if ( typeof Map === 'undefined' ) {
+      throw new Error('Map is undefined. Please provide a polyfill.');
     }
 
+    this.queue           = new Map();
     this.element         = element;
     this.running         = false;
     this.requestId       = null;
@@ -65,7 +63,7 @@ export class ScrollWatcher
 
   prevRect( element )
   {
-    return ScrollWatcher.prevCache.get( element );
+    return ScrollWatcher.prevCache ? ScrollWatcher.prevCache.get( element ) : false;
   }
 
   inViewport( element, minPercent, covering = false )
@@ -212,26 +210,51 @@ export class ScrollWatcher
       this.running = true;
 
       if ( this.queue && this.queue.size ) {
-        this.queue.forEach( callback => {
+
+        for (let [callback, runOnce] of this.queue) {
           this.currentCallback = callback;
-          callback( this, e );
-          if ( callback.runOnce ) {
+
+          if ( typeof callback === 'function' ) {
+            callback( this, e );
+          } else if ( typeof callback === 'object' && callback.handleEvent && typeof callback.handleEvent === 'function' ) {
+            callback.handleEvent( e, this );
+          }
+
+          if ( runOnce ) {
             this.removeCurrentCallback();
           }
-        } );
+        }
+
+        this.currentCallback = null;
 
         ScrollWatcher.prevCache = ScrollWatcher.cache;
-        ScrollWatcher.cache.clear();
+        ScrollWatcher.cache = new WeakMap();
       }
 
       this.running = false;
     }
   }
 
-  add( callback )
+  isValidCallback( callback )
   {
+    switch ( typeof callback ) {
+      case 'function':
+        return true;
+      case 'object':
+        return callback.handleEvent && typeof callback.handleEvent === 'function';
+      default:
+        return false;
+    }
+  }
+
+  add( callback, runOnce = false )
+  {
+    if ( ! this.isValidCallback( callback ) ) {
+      throw new Error('callback is not a function or an object with a handleEvent method');
+    }
+
     if ( this.queue ) {
-      this.queue.add( callback );
+      this.queue.set( callback, !!runOnce );
     }
 
     return this;
@@ -239,13 +262,7 @@ export class ScrollWatcher
 
   once( callback )
   {
-    if ( this.queue ) {
-      callback.runOnce = true;
-
-      return this.add( callback );
-    }
-
-    return this;
+    return this.add( callback, true );
   }
 
   remove( callback )
@@ -335,7 +352,7 @@ export class ScrollWatcher
 
 // Cache the getBoundingClientRect results.
 // Let all instances share the same cache.
-ScrollWatcher.cache = new ClearableWeakMap();
+ScrollWatcher.cache = new WeakMap();
 ScrollWatcher.prevCache = null;
 
 export default ScrollWatcher;
