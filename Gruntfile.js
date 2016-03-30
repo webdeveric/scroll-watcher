@@ -16,13 +16,6 @@ module.exports = function(grunt) {
       js: jsFiles
     },
 
-    jscs: {
-      options: {
-        config: './.jscsrc'
-      },
-      js: jsFiles
-    },
-
     babel: {
       options: {
         sourceMap: true
@@ -50,7 +43,7 @@ module.exports = function(grunt) {
   grunt.task.registerTask(
     'lint',
     'Run linting and coding style tasks',
-    [ 'eslint', 'jscs' ]
+    [ 'eslint' ]
   );
 
   grunt.task.registerTask(
