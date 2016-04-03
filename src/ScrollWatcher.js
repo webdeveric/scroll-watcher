@@ -1,5 +1,5 @@
 import { requestAnimationFrame } from './polyfills/animationFrame';
-import './polyfills/CustomEvent';
+import 'custom-event-polyfill';
 
 export class ScrollWatcher
 {
@@ -40,22 +40,22 @@ export class ScrollWatcher
 
       const rect = element.getBoundingClientRect();
 
-      ScrollWatcher.cache.set(
-        element,
-        {
-          top:          rect.top,
-          right:        rect.right,
-          bottom:       rect.bottom,
-          left:         rect.left,
-          width:        rect.width,
-          height:       rect.height,
-          offsetTop:    element.offsetTop,
-          offsetLeft:   element.offsetLeft,
-          offsetWidth:  element.offsetWidth,
-          offsetHeight: element.offsetHeight
-        }
-      );
+      const values = {
+        top:          rect.top,
+        right:        rect.right,
+        bottom:       rect.bottom,
+        left:         rect.left,
+        width:        rect.width,
+        height:       rect.height,
+        offsetTop:    element.offsetTop,
+        offsetLeft:   element.offsetLeft,
+        offsetWidth:  element.offsetWidth,
+        offsetHeight: element.offsetHeight
+      };
 
+      ScrollWatcher.cache.set( element, values );
+
+      return values;
     }
 
     return ScrollWatcher.cache.get( element );
@@ -322,10 +322,12 @@ export class ScrollWatcher
 
   get scrollLeft()
   {
+    let left = 0;
+
     if ( 'pageXOffset' in this.element ) {
-      top = this.element.pageXOffset;
+      left = this.element.pageXOffset;
     } else if ( 'scrollLeft' in this.element ) {
-      top = this.element.scrollLeft;
+      left = this.element.scrollLeft;
     }
 
     let clientLeft = 'clientLeft' in this.element ? this.element.clientLeft : 0;
@@ -347,7 +349,6 @@ export class ScrollWatcher
 
     return top - clientTop;
   }
-
 }
 
 // Cache the getBoundingClientRect results.
