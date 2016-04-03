@@ -1,10 +1,6 @@
 module.exports = function(grunt) {
   'use strict';
 
-  require('time-grunt')(grunt);
-
-  require('load-grunt-tasks')(grunt);
-
   var jsFiles = [ 'src/**/*.js' ];
 
   var config = {
@@ -39,6 +35,10 @@ module.exports = function(grunt) {
   };
 
   grunt.config.init( config );
+
+  grunt.loadNpmTasks('grunt-babel');
+  grunt.loadNpmTasks('grunt-eslint');
+  grunt.loadNpmTasks('grunt-contrib-watch');
 
   grunt.task.registerTask(
     'lint',
