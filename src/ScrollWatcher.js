@@ -1,4 +1,4 @@
-import { requestAnimationFrame } from './polyfills/animationFrame';
+import { requestAnimationFrame } from 'animation-frame-polyfill';
 import 'custom-event-polyfill';
 
 export class ScrollWatcher
