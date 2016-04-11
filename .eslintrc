@@ -6,7 +6,6 @@
     "node": false,
     "es6": true
   },
-
   "rules": {
     "no-console": 0,
     "quotes": [ 1, "single" ],
