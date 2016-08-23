@@ -7,7 +7,7 @@ module.exports = function(grunt) {
 
     eslint: {
       options: {
-        configFile: './.eslintrc'
+        configFile: 'eslint-config-webdeveric'
       },
       js: jsFiles
     },
