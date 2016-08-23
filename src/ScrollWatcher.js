@@ -1,7 +1,7 @@
 import { requestAnimationFrame } from 'animation-frame-polyfill';
 import 'custom-event-polyfill';
 
-export class ScrollWatcher
+class ScrollWatcher
 {
   constructor( element = window )
   {
@@ -92,8 +92,8 @@ export class ScrollWatcher
   */
   pixelsInViewport( element )
   {
-    const rect = this.rect( element ),
-          vph  = window.innerHeight;
+    const rect = this.rect( element );
+    const vph = window.innerHeight;
 
     if ( rect.top <= 0 && rect.bottom >= vph ) {
 
@@ -103,11 +103,9 @@ export class ScrollWatcher
 
       return Math.max( 0, Math.min( rect.height, vph - rect.top ) );
 
-    } else {
-
-      return Math.max( 0, rect.height + rect.top );
-
     }
+
+    return Math.max( 0, rect.height + rect.top );
   }
 
   /**
@@ -117,8 +115,8 @@ export class ScrollWatcher
   */
   percentInViewport( element, digits = 2 )
   {
-    const p = this.pixelsInViewport( element ),
-          h = Math.min( window.innerHeight, this.rect( element ).height );
+    const p = this.pixelsInViewport( element );
+    const h = Math.min( window.innerHeight, this.rect( element ).height );
 
     return +( p / h ).toFixed( digits );
   }
@@ -130,17 +128,17 @@ export class ScrollWatcher
   */
   percentCoveringViewport( element, digits = 2 )
   {
-    const p = this.pixelsInViewport( element ),
-          h = window.innerHeight;
+    const p = this.pixelsInViewport( element );
+    const h = window.innerHeight;
 
     return +( p / h ).toFixed( digits );
   }
 
   coveringViewport( element )
   {
-    const rect = this.rect( element ),
-          vertical = rect.top <= 0 && rect.bottom >= window.innerHeight,
-          horizontal = rect.left <= 0 && rect.right >= window.innerWidth;
+    const rect = this.rect( element );
+    const vertical = rect.top <= 0 && rect.bottom >= window.innerHeight;
+    const horizontal = rect.left <= 0 && rect.right >= window.innerWidth;
 
     return {
       vertical,
@@ -211,12 +209,14 @@ export class ScrollWatcher
 
       if ( this.queue && this.queue.size ) {
 
-        for (let [callback, runOnce] of this.queue) {
+        for ( let [ callback, runOnce ] of this.queue ) {
           this.currentCallback = callback;
 
-          if ( typeof callback === 'function' ) {
+          const type = typeof callback;
+
+          if ( type === 'function' ) {
             callback( this, e );
-          } else if ( typeof callback === 'object' && callback.handleEvent && typeof callback.handleEvent === 'function' ) {
+          } else if ( type === 'object' ) {
             callback.handleEvent( e, this );
           }
 
