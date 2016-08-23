@@ -12,7 +12,7 @@
   ],
   "scripts": {
     "lint": "eslint -c eslint-config-webdeveric --fix src",
-    "build": "npm run lint && babel src --out-dir lib --compact",
+    "build": "babel src --out-dir lib --compact",
     "postinstall": "npm run build"
   },
   "repository": {
