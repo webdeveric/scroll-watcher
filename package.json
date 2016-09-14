@@ -11,7 +11,7 @@
     ".babelrc"
   ],
   "scripts": {
-    "lint": "eslint -c eslint-config-webdeveric --fix src",
+    "lint": "eslint --fix src",
     "build": "babel src --out-dir lib --compact",
     "postinstall": "npm run build"
   },
