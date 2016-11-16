@@ -3,16 +3,17 @@
   "title": "Scroll Watcher",
   "version": "0.4.0",
   "description": "Perform callbacks onscroll",
-  "main": "lib/ScrollWatcher.js",
-  "jsnext:main": "src/ScrollWatcher.js",
+  "main": "lib/ScrollWatcher.cjs.js",
+  "jsnext:main": "lib/ScrollWatcher.module.js",
   "files": [
     "lib/",
-    "src/",
-    ".babelrc"
+    "src/"
   ],
   "scripts": {
     "lint": "eslint --fix src",
-    "build": "babel src --out-dir lib --compact",
+    "build:cjs": "babel src -o lib/ScrollWatcher.cjs.js --no-babelrc --presets es2015",
+    "build:module": "babel src -o lib/ScrollWatcher.module.js",
+    "build": "npm run build:cjs && npm run build:module",
     "postinstall": "npm run build"
   },
   "repository": {
@@ -41,7 +42,7 @@
     "custom-event-polyfill": "^0.3"
   },
   "devDependencies": {
-    "babel-eslint": "^6.0",
+    "babel-eslint": "^7.0",
     "eslint": "^3.0",
     "eslint-config-webdeveric": "^0.1",
     "grunt": "^1.0",
