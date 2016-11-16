@@ -1,11 +1,22 @@
 import { requestAnimationFrame } from 'animation-frame-polyfill';
 import 'custom-event-polyfill';
 
+const supportsPassive = (() => {
+  let supported = false;
+
+  try {
+    const opt = Object.defineProperty({}, 'passive', { get: () => supported = true } );
+    window.addEventListener('p', null, opt);
+  } catch(e) {} // eslint-disable-line no-empty
+
+  return supported;
+})();
+
 class ScrollWatcher
 {
-  constructor( element = window )
+  constructor( element = window, passive = true )
   {
-    if ( ! window.addEventListener ) {
+    if ( ! element.addEventListener ) {
       return;
     }
 
@@ -15,6 +26,7 @@ class ScrollWatcher
 
     this.queue           = new Map();
     this.element         = element;
+    this.passive         = passive;
     this.running         = false;
     this.requestId       = null;
     this.currentCallback = null;
@@ -36,7 +48,7 @@ class ScrollWatcher
 
   rect( element )
   {
-    if ( ! ScrollWatcher.cache.has( element ) ) {
+    if ( ! this.constructor.cache.has( element ) ) {
 
       const rect = element.getBoundingClientRect();
 
@@ -53,17 +65,17 @@ class ScrollWatcher
         offsetHeight: element.offsetHeight
       };
 
-      ScrollWatcher.cache.set( element, values );
+      this.constructor.cache.set( element, values );
 
       return values;
     }
 
-    return ScrollWatcher.cache.get( element );
+    return this.constructor.cache.get( element );
   }
 
   prevRect( element )
   {
-    return ScrollWatcher.prevCache ? ScrollWatcher.prevCache.get( element ) : false;
+    return this.constructor.prevCache ? this.constructor.prevCache.get( element ) : false;
   }
 
   inViewport( element, minPercent, covering = false )
@@ -176,11 +188,13 @@ class ScrollWatcher
 
   listen( listening = true )
   {
+    const opt = this.passive && supportsPassive ? { passive: true } : false;
+
     this.eventNames.forEach( eventName => {
       if ( listening ) {
-        this.element.addEventListener( eventName, this, false );
+        this.element.addEventListener( eventName, this, opt );
       } else {
-        this.element.removeEventListener( eventName, this, false );
+        this.element.removeEventListener( eventName, this, opt );
       }
     } );
   }
@@ -227,8 +241,8 @@ class ScrollWatcher
 
         this.currentCallback = null;
 
-        ScrollWatcher.prevCache = ScrollWatcher.cache;
-        ScrollWatcher.cache = new WeakMap();
+        this.constructor.prevCache = this.constructor.cache;
+        this.constructor.cache = new WeakMap();
       }
 
       this.running = false;
